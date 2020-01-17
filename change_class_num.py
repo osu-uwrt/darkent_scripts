@@ -2,13 +2,16 @@
 
 import glob
 
+# Which class numbers should be replaced with what
 replacements = {
     "10": "0"
 }
 
+# For each annotation...
 annotationFiles = glob.glob("data/**/*.txt", recursive=True)
 for annotationFile in annotationFiles:
     lines = []
+    # Read each line and replace the class number if it should be
     for line in open(annotationFile, "r"):
         splitLine = line.split(" ")
         if splitLine[0] in replacements:
