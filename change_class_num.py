@@ -2,6 +2,7 @@
 
 import glob
 
+print("Replacing...")
 # Which class numbers should be replaced with what
 replacements = {
     "10": "0"
@@ -19,3 +20,5 @@ for annotationFile in annotationFiles:
         lines.append(" ".join(splitLine))
     with open(annotationFile, "w") as f:
         f.writelines(lines)
+
+print("Done")

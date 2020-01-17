@@ -4,12 +4,15 @@ import glob
 import random
 import cv2
 
+print("Displaying a random frame. Press any key to view next frame")
+
 # Get list of frames and sort thm so thr frames are in order
 images = sorted(glob.glob("data/**/*.jpg", recursive=True))
 
 # Choose a starting frame
-i = random.randint(0, len(images))
+i = random.randint(0, len(images)-1)
 while True:
+    print(images[i])
     img = cv2.imread(images[i])
 
     # Draw bboxes on image
