@@ -2,7 +2,7 @@
 
 import glob
 
-print("Replacing...")
+print("Replacing class numbers...")
 # Which class numbers should be replaced with what
 replacements = {
     "10": "0"

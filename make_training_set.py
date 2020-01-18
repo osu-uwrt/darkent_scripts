@@ -47,6 +47,8 @@ negativeImages = sorted(glob.glob("negatives/**/*.jpg", recursive=True))
 
 # We shouldnt have more negatives than positives
 # Remove random frames until positive >= negative
+if len(positiveImages) > len(negativeImages):
+    print("\n\n\n\nWARNING: Not enough negatives!\n\n\n\n")
 while (len(positiveImages) <= len(negativeImages)):
     negativeImages.pop(random.randint(0, len(negativeImages)-1))
 
