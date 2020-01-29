@@ -1,2 +1,2 @@
-# darkent_scripts
+# darknet_scripts
 Scripts to prepare data and run darknet
