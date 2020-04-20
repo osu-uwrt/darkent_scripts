@@ -5,7 +5,8 @@ import glob
 print("Replacing class numbers...")
 # Which class numbers should be replaced with what
 replacements = {
-    "10": "0"
+    "10": "0",
+    "6": "0"
 }
 
 # For each annotation...
