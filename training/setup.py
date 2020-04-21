@@ -78,6 +78,7 @@ width = cfgData["width"]
 height = cfgData["height"]
 testRatio = cfgData["test_ratio"]
 negativeRatio = cfgData["negative_ratio"]
+iterationsPerClass = cfgData["iterations_per_class"]
 
 generateNegativeFrames()
 
@@ -105,11 +106,11 @@ if cfgData["use_hand_labeled"]:
     print("Processing hand labeled samples")
     handLabeledPath = os.path.expanduser("~/darknet/darknet_scripts/data/hand_labeled/")
     with open(handLabeledPath+"ClassNumbers.txt") as classFile:
-        labeledClassList = [line.split(":")[0] for line in list(classFile)]
+        labeledClassList = [line.split(":")[0].lower() for line in list(classFile)]
 
-    for imagePath in tqdm(glob.glob(simulatedPath + "**/*.jpg", recursive=True)):
+    for imagePath in tqdm(glob.glob(handLabeledPath + "**/*.jpg", recursive=True)):
         fileName = os.path.split(imagePath)[-1]
-        remapClassNumbers(labeledClassList, handLabeledPath + fileName.replace(".jpg", ".txt"))
+        remapClassNumbers(labeledClassList, imagePath.replace(".jpg", ".txt"))
         if random.random() > testRatio:
             trainSamples.append(imagePath)
         else:

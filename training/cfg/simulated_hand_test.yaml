@@ -9,7 +9,7 @@ iterations_per_class: 2000
 use_simulated: True
 
 # Whether to include hand_labeled data while training
-use_hand_labeled: False
+use_hand_labeled: True
 
 # Whether to include negatives while training.
 use_negatives: True

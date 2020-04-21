@@ -1,15 +1,16 @@
 # The list of classes to train on. Can be a subset of what is labeled
 classes:
   - Crucifix
+  - Path
 
 # Iterations per class. Min of 4000 total applied by recommendation from AlexeyAB
-iterations_per_class: 2000
+iterations_per_class: 3000
 
 # Whether to include simulated data while training
 use_simulated: True
 
 # Whether to include hand_labeled data while training
-use_hand_labeled: False
+use_hand_labeled: True
 
 # Whether to include negatives while training.
 use_negatives: True
