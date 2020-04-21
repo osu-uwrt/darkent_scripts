@@ -1,0 +1,5 @@
+classes= {{numClasses}}
+train  = {{cfgName}}/train.txt
+valid  = {{cfgName}}/test.txt
+names  = {{cfgName}}/{{cfgName}}.names
+backup = {{cfgName}}

@@ -14,28 +14,38 @@ def applyAlphaImage(back, fore):
 
 outW = 644
 outH = 482
-path = "dataset_generation/rendered_images/"
-negatives = glob.glob("negatives/*.jpg")
+inPath = "dataset_generation/rendered_images/"
+outPath = "data/simulated/"
+negatives = glob.glob("data/negatives/*.jpg")
 random.shuffle(negatives)
 
-for roiPath in glob.glob(path + "*_roi.png"):
-    name = os.path.split(roiPath)[-1].split("_")[0]
-    imagePath = path+name+".png"
-    obstructionPath = path+name+"_obstruction.png"
+for imagePath in glob.glob(inPath + "*.png"):
+    if "_roi" in imagePath or "_obstruction" in imagePath:
+        continue
+    name = os.path.split(imagePath)[-1].split(".")[0]
+    
     image = cv2.imread(imagePath, cv2.IMREAD_UNCHANGED)
     rect = cv2.boundingRect(cv2.split(image)[3])
-    roi = cv2.imread(roiPath, cv2.IMREAD_UNCHANGED)
-    obstruction = cv2.imread(obstructionPath, cv2.IMREAD_UNCHANGED)
     image = image[rect[1]:rect[1]+rect[3], rect[0]:rect[0]+rect[2]]
-    roi = roi[rect[1]:rect[1]+rect[3], rect[0]:rect[0]+rect[2]]
-    obstruction = obstruction[rect[1]:rect[1]+rect[3], rect[0]:rect[0]+rect[2]]
 
-    _,roi_thresh = cv2.threshold(cv2.cvtColor(roi, cv2.COLOR_BGRA2GRAY), 128, 255, cv2.THRESH_BINARY)
-    _,obstruction_thresh = cv2.threshold(cv2.cvtColor(obstruction, cv2.COLOR_BGRA2GRAY), 128, 255, cv2.THRESH_BINARY)
-    obstructed = cv2.countNonZero(obstruction_thresh) < cv2.countNonZero(roi_thresh) / 2
+    roiPath = inPath+name+"_roi.png"
+    obstructed = False
+    roiExists = False
+    if os.path.exists(roiPath):
+        roiExists = True
+        obstructionPath = inPath+name+"_obstruction.png"
+        roi = cv2.imread(roiPath, cv2.IMREAD_UNCHANGED)
+        obstruction = cv2.imread(obstructionPath, cv2.IMREAD_UNCHANGED)
+        roi = roi[rect[1]:rect[1]+rect[3], rect[0]:rect[0]+rect[2]]
+        obstruction = obstruction[rect[1]:rect[1]+rect[3], rect[0]:rect[0]+rect[2]]
+
+        _,roi_thresh = cv2.threshold(cv2.cvtColor(roi, cv2.COLOR_BGRA2GRAY), 128, 255, cv2.THRESH_BINARY)
+        _,obstruction_thresh = cv2.threshold(cv2.cvtColor(obstruction, cv2.COLOR_BGRA2GRAY), 128, 255, cv2.THRESH_BINARY)
+        obstructed = cv2.countNonZero(obstruction_thresh) < cv2.countNonZero(roi_thresh) / 2
+    
     alpha = image[:, :, 3] / 255.0
 
-    for _ in range(90):
+    for i in range(10):
         # Load image and crop out black or white sections
         backgroundPath = negatives.pop(0)
         background = cv2.imread(backgroundPath)
@@ -52,9 +62,9 @@ for roiPath in glob.glob(path + "*_roi.png"):
         # Generate randomization rotation and translation
         roll = random.uniform(-180, 180)
         baseScale = outH * outW / (image.shape[0] * image.shape[1])
-        tf = cv2.getRotationMatrix2D((rect[2]//2, rect[3]//2), roll, baseScale * random.uniform(0.1, 0.9))
-        tf[0,2] += random.randint(-outW // 2, outW // 2)
-        tf[1,2] += random.randint(-outH // 2, outH // 2)
+        tf = cv2.getRotationMatrix2D((rect[2]//2, rect[3]//2), roll, baseScale * 10 ** random.uniform(-0.1, -1.3))
+        tf[0,2] += random.randint(-outW // 3, outW // 3)
+        tf[1,2] += random.randint(-outH // 3, outH // 3)
         imageTransformed = cv2.warpAffine(image, tf, (outW, outH))
 
         # Generate fog
@@ -72,15 +82,22 @@ for roiPath in glob.glob(path + "*_roi.png"):
         final = applyAlphaImage(final, fog)
         final = applyAlphaImage(final, noise)
         
-
-        obstructionTransformed = cv2.warpAffine(obstruction_thresh, tf, (outW, outH))
         bbox = (0,0,0,0)
         if not obstructed:
-            bbox = cv2.boundingRect(obstructionTransformed)
-        final = cv2.rectangle(final, (bbox[0], bbox[1]), (bbox[0]+bbox[2], bbox[1]+bbox[3]), (0, 0, 255))
+            if roiExists:
+                obstructionTransformed = cv2.warpAffine(obstruction_thresh, tf, (outW, outH))
+                bbox = cv2.boundingRect(obstructionTransformed)
+            else:
+                bbox = cv2.boundingRect(cv2.split(imageTransformed)[3])
+        
+        cv2.imwrite(outPath + name + "_%d.jpg" % i, final)
+        with open(outPath + name + "_%d.txt" % i, 'w+') as labelFile:
+            if not bbox[2] == 0 and not bbox[3] == 0:
+                x = (bbox[0] + bbox[2] / 2) / outW
+                y = (bbox[1] + bbox[3] / 2) / outH
+                w = bbox[2] / outW
+                h = bbox[3] / outH
+                labelFile.write("0 %f %f %f %f\n" % (x, y, w, h))
 
-        cv2.imshow("Background", background)
-        cv2.imshow("Final", final)
-        cv2.waitKey()
         pass
     pass
