@@ -14,7 +14,7 @@ def applyAlphaImage(back, fore):
 
 outW = 644
 outH = 482
-inPath = "dataset_generation/rendered_images/"
+inPath = "simulation/rendered_images/"
 outPath = "data/simulated/"
 negatives = glob.glob("data/negatives/*.jpg")
 random.shuffle(negatives)
