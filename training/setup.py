@@ -58,12 +58,14 @@ def remapClassNumbers(labeledClassList, annotationPath):
     with open(annotationPath, "w+") as annotationFile:
         annotationFile.writelines([line+"\n" for line in annotationLines])
 
+    return len(annotationLines) > 0
+
 
 
 
 # Get configuration name parameter
 parser = argparse.ArgumentParser(description='Setup files for darknet training.')
-parser.add_argument('cfgName', nargs='?', default="simulated_test",
+parser.add_argument('cfgName', nargs='?', default="hand_test",
                     help='name of the training configuration.')
 cfgName = parser.parse_args().cfgName
 
@@ -93,11 +95,12 @@ if cfgData["use_simulated"]:
         imageClass = fileName.split("_")[0].lower()
         if imageClass in classes:
             classNum = classes.index(imageClass)
-            remapClassNumbers([imageClass] * 999, simulatedPath + fileName.replace(".jpg", ".txt"))
-            if random.random() > testRatio:
-                trainSamples.append(imagePath)
-            else:
-                testSamples.append(imagePath)
+            notEmpty = remapClassNumbers([imageClass] * 999, simulatedPath + fileName.replace(".jpg", ".txt"))
+            if notEmpty:
+                if random.random() > testRatio:
+                    trainSamples.append(imagePath)
+                else:
+                    testSamples.append(imagePath)
 else:
     print("Skipping simulated samples")
 
@@ -110,11 +113,12 @@ if cfgData["use_hand_labeled"]:
 
     for imagePath in tqdm(glob.glob(handLabeledPath + "**/*.jpg", recursive=True)):
         fileName = os.path.split(imagePath)[-1]
-        remapClassNumbers(labeledClassList, imagePath.replace(".jpg", ".txt"))
-        if random.random() > testRatio:
-            trainSamples.append(imagePath)
-        else:
-            testSamples.append(imagePath)
+        notEmpty = remapClassNumbers(labeledClassList, imagePath.replace(".jpg", ".txt"))
+        if notEmpty:
+            if random.random() > testRatio and notEmpty:
+                trainSamples.append(imagePath)
+            else:
+                testSamples.append(imagePath)
 else:
     print("Skipping hand labeled samples")
 
