@@ -1,0 +1,11 @@
+# Simulation
+This folder pertains to simulating training samples
+
+## Usage
+To simulate training samples of a new object, place a .dae blender model or the object of interest in the simulation/models/ folder. Ensure the name of the model is the same name as the darknet class you would like to identify it as. In the case where there are multiple models with the same class, names can be "gate_right.dae" or "gate_left.dae" and everything before the first underscore will be the class name.
+
+In the case that only a subset of the model should be boxed, two more models with the similar names should be added. We will use the example of "gate.dae" as the main model name. The first model, with a "_roi" suffix should be a model similar to the original model but with the region to be boxed in white and all other parts of the model deleted. For the gate example the filename would be "gate_roi.dae". The second additional model, with suffix "_obstruction", is similar to roi except instead of deleting the rest of the model except for the white region, it is made black. In the case of the gate example, the name would be "gate_obstruction.dae". The purpose of these models is to determine in any orientation where to draw the bounding box and to determine if the region of interest is obstructed.
+
+The next step is to open renderer.blend in blender and run the script. This will render each model in a random orientation with random light sources to get a large variety of perspectives on the model. If a model has a roi and obstruction model, they will be rendered too in the same orientation. These rendered images are saved in the rendered_images folder.
+
+After the rendered images are generated, the python script post_processing should be run. This script takes each rendered image, generates a random scale, rotation, and translation then adds a background, fog, and noise to make a final training sample. For each sample a text file detailing where the bounding box should be drawn is saved with the sample. These samples are saved in the data/simulated/ folder. Note: backgrounds are randomly grabbed from the data/negatives/ folder. If no negatives have been made, run training/train.sh and some negative samples will be generated.
