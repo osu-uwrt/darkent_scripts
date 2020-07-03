@@ -6,8 +6,8 @@ import cv2
 
 print("Displaying a random frame. Press any key to view next frame")
 
-# Get list of frames and sort thm so thr frames are in order
-images = sorted(glob.glob("data/simulated/**/*.jpg", recursive=True))
+# Get list of frames and sort them so their frames are in order
+images = sorted(glob.glob("data/**/*.jpg", recursive=True))
 
 # Choose a starting frame
 i = random.randint(0, len(images)-1)
@@ -27,5 +27,8 @@ while True:
 
     # Display image and wait for user to click button
     cv2.imshow("Data", img)
-    cv2.waitKey()
-    i += 1
+    pressedKey = cv2.waitKey()
+    if pressedKey == ord('r'):
+        i = random.randint(0, len(images)-1)
+    else:
+        i += 1

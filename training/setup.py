@@ -5,6 +5,8 @@ from tqdm import tqdm
 import argparse
 import yaml
 import random
+import numpy as np
+import shutil
 
 def generateNegativeFrames():
     print("Generating negative frames from videos")
@@ -21,6 +23,13 @@ def generateNegativeFrames():
         success,image = vidcap.read()
         count = 0
         while success:
+            _, imageGray = cv2.threshold(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), 10, 255, cv2.THRESH_BINARY)
+            imageRect = list(cv2.boundingRect(imageGray))
+            if np.average(imageGray[:3, 400:500]) > 240:
+                imageRect[1] += imageRect[2] // 5
+                imageRect[3] -= imageRect[2] // 5
+            if imageRect[2] != 0 or imageRect[3] != 0:
+                image = image[imageRect[1]:imageRect[1]+imageRect[3], imageRect[0]:imageRect[0]+imageRect[2]]
             cv2.imwrite("data/negatives/%s_%05d.jpg" % (videoName, count), image)     # save frame as JPEG file    
             with open("data/negatives/%s_%05d.txt" % (videoName, count), "w"):
                 pass  
@@ -81,6 +90,7 @@ height = cfgData["height"]
 testRatio = cfgData["test_ratio"]
 negativeRatio = cfgData["negative_ratio"]
 iterationsPerClass = cfgData["iterations_per_class"]
+startWeights = cfgData["start_weights"]
 
 generateNegativeFrames()
 
@@ -154,3 +164,6 @@ with open(cfgPath + "test.txt", "w+") as testFile:
     testFile.writelines([line + "\n" for line in testSamples])
 with open(cfgPath + "train.txt", "w+") as trainFile:
     trainFile.writelines([line + "\n" for line in trainSamples])
+
+darknetPath = os.path.expanduser("~/darknet/")
+shutil.copy(darknetPath + startWeights, darknetPath + "startingWeights.weights")

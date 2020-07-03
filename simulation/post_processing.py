@@ -3,6 +3,7 @@ import glob
 import os
 import random
 import numpy as np
+from tqdm import tqdm
 
 def applyAlphaImage(back, fore):
     alpha = fore[:, :, 3] / 255.0
@@ -19,7 +20,7 @@ outPath = "data/simulated/"
 negatives = glob.glob("data/negatives/*.jpg")
 random.shuffle(negatives)
 
-for imagePath in glob.glob(inPath + "*.png"):
+for imagePath in tqdm(glob.glob(inPath + "*.png")):
     if "_roi" in imagePath or "_obstruction" in imagePath:
         continue
     name = os.path.split(imagePath)[-1].split(".")[0]
@@ -39,33 +40,30 @@ for imagePath in glob.glob(inPath + "*.png"):
         roi = roi[rect[1]:rect[1]+rect[3], rect[0]:rect[0]+rect[2]]
         obstruction = obstruction[rect[1]:rect[1]+rect[3], rect[0]:rect[0]+rect[2]]
 
-        _,roi_thresh = cv2.threshold(cv2.cvtColor(roi, cv2.COLOR_BGRA2GRAY), 128, 255, cv2.THRESH_BINARY)
-        _,obstruction_thresh = cv2.threshold(cv2.cvtColor(obstruction, cv2.COLOR_BGRA2GRAY), 128, 255, cv2.THRESH_BINARY)
+        _,roi_thresh = cv2.threshold(cv2.cvtColor(roi, cv2.COLOR_BGRA2GRAY), 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        _,obstruction_thresh = cv2.threshold(cv2.cvtColor(obstruction, cv2.COLOR_BGRA2GRAY), 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
         obstructed = cv2.countNonZero(obstruction_thresh) < cv2.countNonZero(roi_thresh) / 2
     
     alpha = image[:, :, 3] / 255.0
 
     for i in range(10):
-        # Load image and crop out black or white sections
+        # Load image
         backgroundPath = negatives.pop(0)
         background = cv2.imread(backgroundPath)
-        _, backgroundGray = cv2.threshold(cv2.cvtColor(background, cv2.COLOR_BGR2GRAY), 10, 255, cv2.THRESH_BINARY)
-        backRect = list(cv2.boundingRect(backgroundGray))
-        if np.average(backgroundGray[:3, 400:500]) > 240:
-            backRect[1] += backRect[2] // 5
-            backRect[3] -= backRect[2] // 5
-        if backRect[2] != 0 or backRect[3] != 0:
-            background = cv2.resize(background[backRect[1]:backRect[1]+backRect[3], backRect[0]:backRect[0]+backRect[2]], (outW, outH))
-        else:
-            background = cv2.resize(background, (outW, outH))
+        background = cv2.resize(background, (outW, outH))
         
         # Generate randomization rotation and translation
         roll = random.uniform(-180, 180)
         baseScale = outH * outW / (image.shape[0] * image.shape[1])
-        tf = cv2.getRotationMatrix2D((rect[2]//2, rect[3]//2), roll, baseScale * 10 ** random.uniform(-0.1, -1.3))
+        scaleModifier = random.uniform(-0.1, -.9)
+        tf = cv2.getRotationMatrix2D((rect[2]//2, rect[3]//2), roll, baseScale * 10 ** scaleModifier)
         tf[0,2] += random.randint(-outW // 3, outW // 3)
         tf[1,2] += random.randint(-outH // 3, outH // 3)
         imageTransformed = cv2.warpAffine(image, tf, (outW, outH))
+
+        # Generate random blur
+        blurAmount = random.randint(1, 3)
+        blurKernelSize = (blurAmount, blurAmount)
 
         # Generate fog
         fogColorHSV = np.array([[[random.randint(70, 90), random.randint(0, 255), 255]]], np.uint8)
@@ -79,6 +77,7 @@ for imagePath in glob.glob(inPath + "*.png"):
         noise[:, :, 3] = random.randint(0, 64)
 
         final = applyAlphaImage(background, imageTransformed)
+        final = cv2.blur(final, blurKernelSize)
         final = applyAlphaImage(final, fog)
         final = applyAlphaImage(final, noise)
         

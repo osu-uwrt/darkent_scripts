@@ -1,7 +1,6 @@
 # The list of classes to train on. Can be a subset of what is labeled
 classes:
-  - Crucifix
-  - Path
+  - Gate
 
 # Iterations per class. Min of 4000 total applied by recommendation from AlexeyAB
 iterations_per_class: 3000
@@ -10,7 +9,7 @@ iterations_per_class: 3000
 use_simulated: True
 
 # Whether to include hand_labeled data while training
-use_hand_labeled: True
+use_hand_labeled: False
 
 # Whether to include negatives while training.
 use_negatives: True
@@ -31,3 +30,5 @@ width: 416
 # The neural net architecture to use. 
 # As of right now yolov3-tiny is the only one that fits on a jetson TX1
 cfg_template: yolov3-tiny.cfg
+
+start_weights: yolov3-tiny.conv.15

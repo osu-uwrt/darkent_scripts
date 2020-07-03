@@ -1,15 +1,17 @@
 # The list of classes to train on. Can be a subset of what is labeled
 classes:
+  - Cutie
   - Crucifix
+  - Garlic
 
 # Iterations per class. Min of 4000 total applied by recommendation from AlexeyAB
-iterations_per_class: 3000
+iterations_per_class: 4000
 
 # Whether to include simulated data while training
 use_simulated: True
 
 # Whether to include hand_labeled data while training
-use_hand_labeled: True
+use_hand_labeled: False
 
 # Whether to include negatives while training.
 use_negatives: True
@@ -21,14 +23,13 @@ test_ratio: .1
 
 # The larger this number the slower the training but requires less memory
 # If you get a cuda error, increace this number by 2* up to 64
-subdivisions: 4
+subdivisions: 8
 
 # Height and width of the neural net. Not related to image size.
-height: 416
-width: 416
+height: 480
+width: 640
 
 # The neural net architecture to use. 
-# As of right now yolov3-tiny is the only one that fits on a jetson TX1
-cfg_template: yolov3-tiny.cfg
+cfg_template: yolov3-tiny_3l.cfg
 
-start_weights: yolov3-tiny.conv.15
+start_weights: yolov3-tiny.conv.11
